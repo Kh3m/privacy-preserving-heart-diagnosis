@@ -18,14 +18,6 @@ class KeyM {
     };
   }
 
-  factory KeyM.fromJson(Map<dynamic, dynamic> json) {
-    return KeyM(
-      n: json['public_key']['n'],
-      p: json['private_key']['p'],
-      q: json['private_key']['q'],
-    );
-  }
-
   @override
   String toString() {
     return '{public_key: {n: $n}, private_key: {p: $p, q: $q} }';

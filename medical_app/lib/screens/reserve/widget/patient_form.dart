@@ -148,14 +148,10 @@ class _PatientFormState extends State<PatientForm> {
                         ),
                       );
                     } else {
-                      // Sends the public key and values for encryption
+                      // Encrypts on the device; plaintext values never leave it
                       _form.currentState!.save();
-                      final data = {
-                        'public_key': {'n': keyList[0].n},
-                        'values': values.values.toList(),
-                      };
                       Provider.of<EncDec>(context, listen: false)
-                          .sendForEnc(data);
+                          .sendForEnc(values, keyList[0]);
                     }
                   }
                 },

@@ -28,6 +28,7 @@ class EncryptedInfo extends StatelessWidget {
     final Map<String, dynamic> result = Provider.of<EncDec>(context).encData;
     bool isNull = result['values'] == null;
     final fields = Cardiolgy.getFieldsDesc().keys.toList();
+    final features = isNull ? [] : result['features'] as List;
     List? fieldVals;
     final _form = GlobalKey<FormState>();
     final Map values = {};
@@ -35,8 +36,8 @@ class EncryptedInfo extends StatelessWidget {
       values[key] = value;
     }
     if (!(isNull)) {
-      fieldVals = List.generate(fields.length, (i) {
-        return {fields[i]: (result['values'] as List)[i][0]};
+      fieldVals = List.generate(features.length, (i) {
+        return {features[i]: (result['values'] as List)[i][0]};
       });
     }
 
@@ -91,19 +92,17 @@ class EncryptedInfo extends StatelessWidget {
                         // ),
                       );
                     } else {
-                      // Sends the public key and values for encryption
+                      // Only the public key and ciphertexts go to the server
                       _form.currentState!.save();
                       final data = {
                         'public_key': {'n': keyList[0].n},
-                        'private_key': {'p': keyList[0].p, 'q': keyList[0].q},
                         'values': result['values'],
-                        'columns': fields,
-                        'sd': true
                       };
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => HeartDiseaseConfirmationScreen(
                             data: data,
+                            keyM: keyList[0],
                             doctor: doctor,
                             category: category,
                             tabController: tabController,

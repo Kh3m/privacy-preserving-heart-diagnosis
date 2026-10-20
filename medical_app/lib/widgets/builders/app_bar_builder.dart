@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../utils/custom_icons_icons.dart';
 import '../../utils/hex_color.dart';
@@ -8,7 +9,7 @@ import '../../utils/hex_color.dart';
     return AppBar(
       backgroundColor: HexColor('#00C6AD'),
       elevation: 0,
-      brightness: Brightness.dark,
+      systemOverlayStyle: SystemUiOverlayStyle.light,
       iconTheme: const IconThemeData(color: Colors.white),
       leading: IconButton(
         icon: const Icon(CustomIcons.arrowLeft, size: 20),

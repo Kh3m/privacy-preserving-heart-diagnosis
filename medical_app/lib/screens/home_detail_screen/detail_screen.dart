@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../models/doctor.dart';
 import '../../utils/custom_icons_icons.dart';
@@ -143,7 +144,7 @@ class _HomeDetailScreenState extends State<HomeDetailScreen> {
     return AppBar(
       backgroundColor: HexColor('#00C6AD'),
       elevation: 0,
-      brightness: Brightness.dark,
+      systemOverlayStyle: SystemUiOverlayStyle.light,
       iconTheme: const IconThemeData(color: Colors.white),
       leading: IconButton(
         icon: const Icon(CustomIcons.arrowLeft, size: 20),

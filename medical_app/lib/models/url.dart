@@ -13,8 +13,5 @@ class URL {
     defaultValue: 'http://10.0.2.2:5000',
   );
 
-  static const encUrl = 'api/phe/client/encrypt';
-  static const genKeyPairUrl = 'api/phe/client/generate_key_pair';
   static const classificationUrl = 'api/operations/ml/classification';
-  static const decryptHeartDiseaseTargetUrl = 'api/phe/client/decrypt';
 }

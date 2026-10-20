@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../constant.dart';
 import '../../models/category.dart';
 import '../../models/doctor.dart';
+import '../../models/patient/key_m.dart';
 import '../../models/patient/patient.dart';
 import '../../utils/custom_icons_icons.dart';
 import '../../widgets/builders/app_bar_builder.dart';
@@ -15,6 +16,7 @@ import '../reserve/widget/enc_text_view.dart';
 
 class HeartDiseaseConfirmationScreen extends StatefulWidget { 
   final Map data;
+  final KeyM keyM;
   final Doctor doctor;
   final Category category;
   final TabController tabController;
@@ -22,6 +24,7 @@ class HeartDiseaseConfirmationScreen extends StatefulWidget {
   const HeartDiseaseConfirmationScreen({
     super.key,
     required this.data,
+    required this.keyM,
     required this.tabController,
     required this.doctor,
     required this.category
@@ -83,13 +86,6 @@ class _HeartDiseaseConfirmationScreenState extends State<HeartDiseaseConfirmatio
                     height: 300,
                     child: _isDecrypted ? _buildDecSec( hasDisease ) : _buildUnDecSec(
                       data: {
-                        "public_key": {
-                          "n": widget.data["public_key"]["n"]
-                        },
-                        "private_key": {
-                          "p": widget.data["private_key"]["p"],
-                          "q": widget.data["private_key"]["q"]
-                        },
                         "values": snapshot.data!["values"]
                       }
                     )
@@ -157,16 +153,8 @@ Widget _buildUnDecSec( {data} ) {
                       setState(() {
                         _isDecryptLoading = true;
                       });
-                      final vals = await Provider.of<Patient>(context, listen: false).decryptHeartDiseaseTarget({
-                        "public_key": {
-                          "n": data["public_key"]["n"]
-                        },
-                        "private_key": {
-                          "p": data["private_key"]["p"],
-                          "q": data["private_key"]["q"]
-                        },
-                        "values": data["values"],
-                      });
+                      final vals = await Provider.of<Patient>(context, listen: false)
+                          .decryptHeartDiseaseTarget(data["values"], widget.keyM);
                       setState(() {
                         _isDecryptLoading = false; 
                         _decryptedVals = vals;

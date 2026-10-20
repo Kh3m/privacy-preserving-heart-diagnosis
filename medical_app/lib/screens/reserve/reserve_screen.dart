@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:medical_app/screens/reserve/widget/appointment_slot.dart';
 
 import '../../models/doctor.dart';
@@ -145,7 +146,7 @@ class _ReserveScreenState extends State<ReserveScreen>
     return AppBar(
       backgroundColor: HexColor('#00C6AD'),
       elevation: 0,
-      brightness: Brightness.dark,
+      systemOverlayStyle: SystemUiOverlayStyle.light,
       iconTheme: const IconThemeData(color: Colors.white),
       leading: IconButton(
         icon: const Icon(CustomIcons.arrowLeft, size: 20),
