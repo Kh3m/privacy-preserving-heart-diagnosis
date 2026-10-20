@@ -70,6 +70,56 @@ The Dart encryption code produces exactly the same format as the Python
 [python-paillier](https://github.com/data61/python-paillier) library that the
 server uses.
 
+## Why Paillier and not fully homomorphic encryption
+
+There are three kinds of homomorphic encryption:
+
+| Kind | What it can do on encrypted data | Examples |
+|---|---|---|
+| Partial (PHE) | One kind of operation, as often as needed. Paillier can add, and multiply by normal numbers. | Paillier |
+| Somewhat (SHE) | Add, and multiply encrypted numbers together a limited number of times | BFV, CKKS |
+| Fully (FHE) | Any calculation | TFHE, CKKS with bootstrapping |
+
+**Where the cost is.** FHE is known for being slow, but the slow part runs on
+the server: multiplying encrypted numbers together, and especially
+bootstrapping (the step that makes unlimited calculations possible). The phone
+only creates keys, encrypts and decrypts, which is cheap in every scheme. So
+SHE and FHE can run on a phone too.
+
+We chose Paillier because:
+
+- **It is all the model needs.** The score is the server's own weights times
+  the encrypted inputs, added up. Two encrypted numbers are never multiplied
+  together, so SHE and FHE would add power we don't use.
+- **It is light for a phone app.** Each encrypted value is 4096 bits
+  (512 bytes), and the keys are just two large primes. SHE and FHE use much
+  larger ciphertexts, and the server also needs extra keys that are often
+  several megabytes. The main SHE and FHE libraries, such as Microsoft SEAL and
+  OpenFHE, are written in C++, so a Flutter app would need native bindings.
+  Paillier only needs big-number maths, which Dart has built in.
+- **The results are exact.** CKKS, the usual choice for machine learning, gives
+  approximate results. Our encrypted scores match the normal ones to within
+  1e-15.
+- **It is simple and well studied.** The only setting to choose is the key
+  size. SHE and FHE need several settings that trade security against speed
+  and precision.
+
+SHE or FHE would be the better choice to:
+
+- **encrypt faster.** CKKS can pack all 27 inputs into one ciphertext and
+  encrypt them in one go. Paillier encrypts each value on its own, which is
+  why encryption is the slowest step in our [speed test](#speed).
+- **resist quantum computers.** Paillier is safe only while large numbers
+  can't be factored. SHE and FHE are based on lattice problems, which are
+  believed to be safe against quantum attacks.
+- **hide the score.** Sending back only "disease" or "no disease" needs a
+  comparison on encrypted data. Paillier can't do that on its own. It would
+  need extra rounds of messages between the phone and the server.
+- **run bigger models.** Neural networks need encrypted multiplications for
+  their activation functions, and decision trees need comparisons.
+- **handle many patients at once.** CKKS can pack thousands of values into one
+  ciphertext.
+
 ## API
 
 | Method | Address | What it does |
