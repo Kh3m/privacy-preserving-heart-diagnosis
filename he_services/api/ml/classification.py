@@ -28,9 +28,11 @@ class MyClassification(Resource):
             np.array(data["values"]).reshape(1, -1),
             columns=data["columns"],
         )
+        
         y_pred = self.load_model().predict(df)
         public_key = paillier.PaillierPublicKey(n=int(data["public_key"]["n"]))
         encrypted_data_list = [public_key.encrypt(float(x)) for x in y_pred.tolist()]
+        
         return self._he.serializeData(public_key, encrypted_data_list)
 
     @classmethod

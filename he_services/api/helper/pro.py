@@ -23,15 +23,19 @@ def process(data):
 
     Returns:
         A list of decrypted numeric feature values, ordered as received.
+    
     """
+    
     public_key = paillier.PaillierPublicKey(n=int(data["public_key"]["n"]))
     private_key = paillier.PaillierPrivateKey(
         public_key,
         int(data["private_key"]["p"]),
         int(data["private_key"]["q"]),
     )
+    
     encrypted = [
         paillier.EncryptedNumber(public_key, int(value), int(exponent))
         for value, exponent in data["values"]
     ]
+    
     return [private_key.decrypt(x) for x in encrypted]
