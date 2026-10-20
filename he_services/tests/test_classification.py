@@ -10,7 +10,8 @@ from app import app
 
 URL = "/api/operations/ml/classification"
 
-# Two records from heart_disease_model/data/heart-disease.csv (targets 1 and 0).
+# Two records from heart_disease_model/data/heart-disease.csv: the first has no
+# heart disease, the second has it (the CSV's target column is inverted, 1 = none).
 PATIENTS = [
     {"age": 63, "sex": 1, "cp": 3, "trestbps": 145, "chol": 233, "fbs": 1, "restecg": 0,
      "thalach": 150, "exang": 0, "oldpeak": 2.3, "slope": 0, "ca": 0, "thal": 1},

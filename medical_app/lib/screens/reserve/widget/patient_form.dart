@@ -68,15 +68,12 @@ class _PatientFormState extends State<PatientForm> {
               ? const Center(
                   child: CircularProgressIndicator(),
                 )
-              : Wrap(
-                  spacing: 25,
-                  alignment: WrapAlignment.start,
+              : Column(
                   children: [
                     ...Cardiolgy.getFieldsDesc().entries.map((e) {
                       return PatientInfoField(
                         field: e.key,
                         fieldValue: e.value,
-                        check: false,
                         onSave: _onSave,
                         actualValue: queryLists.isEmpty
                             ? ''

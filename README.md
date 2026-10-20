@@ -23,7 +23,7 @@ patient's data or the prediction.
 |---|---|
 | `medical_app/` | The Flutter app. The encryption code is in `lib/crypto/paillier.dart`. |
 | `he_services/` | The Flask server that runs the model on encrypted data |
-| `heart_disease_model/` | The dataset, the training script and the evaluation notebook |
+| `heart_disease_model/` | The dataset and `heart-disease-experiment.ipynb`, which trains, tests and saves the model |
 
 ## How it works
 
@@ -35,7 +35,7 @@ Phone (has the private key)                     Server (has the model)
 2. Ask for the input format  --- GET ---->
                              <-- format --
 
-3. Turn the form into 27 numbers
+3. Turn the form answers into 27 numbers
    and encrypt each one
 
 4. Send the encrypted numbers --- POST --->  Compute the encrypted score
@@ -59,7 +59,9 @@ means the model thinks the chance of heart disease is more than 50%.
 
 **Why 27 numbers instead of 13.** Some fields are categories, not amounts. For
 example, chest pain type (`cp`) is a label, so `cp = 2` is not "twice" `cp = 1`.
-The app turns each category field into a set of yes/no values (this is called
+In the app, the user picks these from a list of plain options, like "Typical
+angina". The app converts each choice to the code used in the training data,
+then turns each category field into a set of yes/no values (this is called
 one-hot encoding). This has to happen on the phone before encryption, because
 the server can't do it to an encrypted number. The 13 form fields become 27
 numbers.
@@ -143,6 +145,19 @@ The model is a logistic regression trained on the UCI Cleveland heart disease
 dataset: 303 patients and 13 measurements each. The data is in
 `heart_disease_model/data/heart-disease.csv`.
 
+**Watch out for the labels in this file.** It is the Kaggle copy of the UCI
+data, and it numbers things differently from the original. We matched it row by
+row with the original UCI file and found:
+
+- The `target` column is **reversed**: 1 means **no** heart disease and 0 means
+  heart disease. Our training code flips it, so in the model and the app,
+  1 means heart disease.
+- The category codes are renumbered. For example, chest pain type `cp = 0`
+  means no chest pain, and `thal = 2` means normal. The full list is in
+  `medical_app/lib/models/patient/cardiology.dart`.
+- `ca = 4` and `thal = 0` mean the value was missing in the original data.
+  The app offers these as "Unknown".
+
 ### Why logistic regression
 
 The model has to run on encrypted numbers, so it can only add and multiply.
@@ -157,26 +172,31 @@ varied between runs.
 
 | Model | Works encrypted? | Accuracy | Precision | Recall | F1 | ROC AUC |
 |---|---|---|---|---|---|---|
-| Random Forest (paper) | no | 0.822 ± 0.046 | 0.826 ± 0.055 | 0.859 ± 0.065 | 0.840 ± 0.042 | 0.904 ± 0.034 |
-| KNN (k=5) | no | 0.816 ± 0.049 | 0.812 ± 0.055 | 0.869 ± 0.063 | 0.837 ± 0.042 | 0.877 ± 0.043 |
-| Logistic regression, 13 inputs | yes | 0.830 ± 0.040 | 0.816 ± 0.046 | 0.892 ± 0.063 | 0.850 ± 0.037 | 0.897 ± 0.039 |
-| **Logistic regression, 27 inputs (used)** | **yes** | **0.851 ± 0.050** | **0.852 ± 0.065** | **0.886 ± 0.059** | **0.866 ± 0.044** | **0.918 ± 0.035** |
+| Random Forest (paper) | no | 0.822 ± 0.046 | 0.827 ± 0.064 | 0.777 ± 0.084 | 0.798 ± 0.056 | 0.904 ± 0.034 |
+| KNN (k=5) | no | 0.816 ± 0.049 | 0.833 ± 0.068 | 0.753 ± 0.093 | 0.786 ± 0.064 | 0.877 ± 0.043 |
+| Logistic regression, 13 inputs | yes | 0.830 ± 0.040 | 0.860 ± 0.066 | 0.755 ± 0.077 | 0.800 ± 0.049 | 0.897 ± 0.039 |
+| **Logistic regression, 27 inputs (used)** | **yes** | **0.851 ± 0.050** | **0.859 ± 0.059** | **0.809 ± 0.096** | **0.830 ± 0.062** | **0.918 ± 0.035** |
+
+Precision and recall are about finding patients **with** heart disease.
+Recall is the share of sick patients the model catches. Precision is the share
+of "heart disease" predictions that are correct.
 
 What this shows:
 
 - **The model we use is the best of the four.** It has the highest accuracy,
-  precision, F1 and ROC AUC. It beat the Random Forest in 33 of the 50 runs,
-  tied in 10 and lost in 7.
+  recall, F1 and ROC AUC. Its precision ties the 13-input logistic
+  regression. It beat the Random Forest in 33 of the 50 runs, tied in 10 and
+  lost in 7.
 - **One-hot encoding helps.** Using 27 inputs instead of 13 adds about 2
-  percentage points of accuracy. The cost is 27 encryptions per prediction
-  instead of 13.
-- **It misses fewer sick patients.** Recall is about 0.89, compared with 0.86
-  for the Random Forest. For a screening tool, missing a sick patient is the
-  worst mistake.
+  percentage points of accuracy and 5 points of recall. The cost is 27
+  encryptions per prediction instead of 13.
+- **It catches more sick patients.** Recall is 0.81, compared with 0.78 for
+  the Random Forest. But it still misses about 1 in 5 patients who have heart
+  disease (see [Limitations](#limitations)).
 - **Encryption doesn't change the answer.** We sent all 303 patients through
   the encrypted server. Every prediction was the same as without encryption.
 
-The full analysis is in `heart_disease_model/encrypted-model-evaluation.ipynb`.
+The full analysis is in `heart_disease_model/heart-disease-experiment.ipynb`.
 
 **About the 91.8% in the paper.** That number, and 88.5%, each come from
 testing on one split of 61 patients. Small test sets give very different
@@ -184,17 +204,19 @@ results depending on which patients land in them. We tested the same Random
 Forest on 30 different random splits and got anywhere from 72.1% to 90.2%. So
 you can't compare a one-split number with the averages above.
 
-To retrain the model:
+To retrain the model, run `heart_disease_model/heart-disease-experiment.ipynb`
+from top to bottom:
 
 ```bash
 cd heart_disease_model
 pip install -r requirements.txt
-python train_encrypted_model.py
+jupyter notebook heart-disease-experiment.ipynb
 ```
 
-This saves the model weights to
-`he_services/ml_models/heart_disease_logistic_regression.json`. It also checks
-that the saved weights give exactly the same scores as the trained model.
+It saves the model weights to
+`he_services/ml_models/heart_disease_logistic_regression.json`, which the server
+loads. It also checks that the saved weights give exactly the same scores as
+the trained model.
 
 ## Speed
 
@@ -232,10 +254,9 @@ the phone, so the server can't read the patient's data or the result.
 4. **The private key is not protected on the phone.** It is stored as plain
    text in the app's SQLite database. Moving it to the phone's secure storage
    (for example `flutter_secure_storage`) would fix this.
-5. **Some form hints don't match the training data.** The app says `cp` goes
-   from 1 to 4 and `thal` is 1, 3, 6 or 7. In the training data both go from 0
-   to 3. If a value isn't in the training data, all of its yes/no inputs become
-   0.
+5. **The model misses about 1 in 5 sick patients.** Its recall for heart
+   disease is 0.81. That is better than the paper's Random Forest, but far too
+   low for real screening.
 
 ## Changes since the paper
 
@@ -245,11 +266,25 @@ The server also created the keys, and the app sent the raw measurements to a
 server `/encrypt` address. The server had to decrypt because a Random Forest
 can't run on encrypted numbers.
 
+The paper's version also had two problems with the data's labels:
+
+- **The result screen was reversed.** The dataset's `target` column uses 1 for
+  no heart disease, but the app treated 1 as heart disease. So it told
+  patients predicted healthy "Sorry" and patients predicted sick "You're
+  Fine!". Accuracy figures are not affected, because flipping both labels
+  doesn't change how often the model is right.
+- **The form asked for the wrong codes.** Its hints used the original UCI
+  numbering (for example `cp` from 1 to 4), but the model was trained on the
+  Kaggle numbering (`cp` from 0 to 3, in a different order).
+
 This version:
 
 - uses a logistic regression instead of the Random Forest
 - creates the keys, encrypts and decrypts on the phone
 - removes every server address that received a private key or raw data
+- trains with the correct label, so 1 means heart disease everywhere
+- replaces the number-code form with dropdowns of plain options and number
+  boxes with units and limits
 
 Code that the new version no longer uses has been deleted: the paper's
 notebooks and Random Forest, the old server code, and seven Dart files that

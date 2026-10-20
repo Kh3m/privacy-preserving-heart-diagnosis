@@ -51,8 +51,8 @@ class _HeartDiseaseConfirmationScreenState extends State<HeartDiseaseConfirmatio
   Widget build(BuildContext context) {
     bool hasDisease = false;
     if(_decryptedVals.isNotEmpty) {
-      hasDisease = _decryptedVals[0] == 1.0 ? true : false; 
-      // hasDisease = _decryptedVals[0] == 1.0 ? false : true; 
+      // 1.0 means the model predicts heart disease.
+      hasDisease = _decryptedVals[0] == 1.0;
     }     
    
     return Scaffold(
