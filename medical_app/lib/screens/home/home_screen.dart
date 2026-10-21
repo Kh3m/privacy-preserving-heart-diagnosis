@@ -240,7 +240,7 @@ List<Doctor> _getDoctors() {
                   decoration:  InputDecoration(
                     prefixIcon: Icon(Icons.search),
                     border: InputBorder.none,
-                    hintText: 'How cn we help you?',
+                    hintText: 'How can we help you?',
                   ),
                 ),
               ),
