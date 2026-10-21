@@ -30,6 +30,7 @@ class MyApp extends StatelessWidget {
         title: 'Doctor Appointment App',
         theme: ThemeData(
           scaffoldBackgroundColor: Colors.white,
+          fontFamily: 'Inter',
           // primarySwatch: Colors.deepPurple,
         ),
         home: const HomeScreen(),

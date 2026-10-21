@@ -344,12 +344,6 @@ old file, run `git show paper-v1:<path>`.
 The accuracy and speed numbers in this README are for this version, not the
 paper's.
 
-## Fonts
-
-The app was designed with the SF Pro Display font. Apple's license doesn't
-allow sharing it, so it isn't included and the app uses the default font. See
-`medical_app/assets/fonts/README.md` to add it back or use Inter instead.
-
 ## License
 
 MIT. See [LICENSE](LICENSE).
