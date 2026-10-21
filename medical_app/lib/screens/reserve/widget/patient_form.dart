@@ -35,6 +35,62 @@ class _PatientFormState extends State<PatientForm> {
     values[key] = value;
   }
 
+  void _showMessage(String text) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  }
+
+  /// Validates every field. If any are invalid, scrolls to the first one and
+  /// says so, because the error text may be off-screen in this long form.
+  bool _validateForm() {
+    final invalidFields = _form.currentState!.validateGranularly();
+    if (invalidFields.isEmpty) return true;
+    Scrollable.ensureVisible(
+      invalidFields.first.context,
+      duration: const Duration(milliseconds: 300),
+      alignment: 0.2,
+    );
+    _showMessage('Please fix the highlighted fields');
+    return false;
+  }
+
+  Future<void> _savePressed() async {
+    if (!_validateForm()) return;
+    setState(() {
+      isSaving = true;
+    });
+    _form.currentState!.save();
+    try {
+      await CardiologySQFlite.insertCardiology(
+        Cardiolgy(
+          age: int.parse(values['age']),
+          sex: int.parse(values['sex']),
+          cp: int.parse(values['cp']),
+          trestbps: int.parse(values['trestbps']),
+          chol: int.parse(values['chol']),
+          fbs: int.parse(values['fbs']),
+          restecg: int.parse(values['restecg']),
+          thalach: int.parse(values['thalach']),
+          exang: int.parse(values['exang']),
+          oldpeak: double.parse(values['oldpeak']),
+          slope: int.parse(values['slope']),
+          ca: int.parse(values['ca']),
+          thal: int.parse(values['thal']),
+        ),
+      );
+      if (mounted) _showMessage('Data saved');
+    } catch (e) {
+      log('Saving patient data failed: $e');
+      if (mounted) _showMessage('Could not save the data: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          isSaving = false;
+        });
+      }
+    }
+  }
+
   // called immediately after initState()
   @override
   void didChangeDependencies() {
@@ -88,41 +144,7 @@ class _PatientFormState extends State<PatientForm> {
           Row(
             children: [
               Button(
-                onPressed: () async {
-                  setState(() {
-                    isSaving = true;
-                  });
-                  if (_form.currentState!.validate()) {
-                    _form.currentState!.save();
-
-                    await CardiologySQFlite.insertCardiology(
-                      Cardiolgy(
-                        age: int.parse(values['age']),
-                        sex: int.parse(values['sex']),
-                        cp: int.parse(values['cp']),
-                        trestbps: int.parse(values['trestbps']),
-                        chol: int.parse(values['chol']),
-                        fbs: int.parse(values['fbs']),
-                        restecg: int.parse(values['restecg']),
-                        thalach: int.parse(values['thalach']),
-                        exang: int.parse(values['exang']),
-                        oldpeak: double.parse(values['oldpeak']),
-                        slope: int.parse(values['slope']),
-                        ca: int.parse(values['ca']),
-                        thal: int.parse(values['thal']),
-                      ),
-                    );
-                    ScaffoldMessenger.of(context).clearSnackBars();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Data updated!!!'),
-                      ),
-                    );
-                  }
-                  setState(() {
-                    isSaving = false;
-                  });
-                },
+                onPressed: isSaving ? null : _savePressed,
                 text: isSaving ? "..." : "Save",
               ),
               const SizedBox(
@@ -132,10 +154,10 @@ class _PatientFormState extends State<PatientForm> {
                 text:
                     (isStartEnc && isEncLoading) ? 'Processing...' : 'Encrypt',
                 onPressed: () async {
-                  setState(() {
-                    isStartEnc = true;
-                  });
-                  if (_form.currentState!.validate()) {
+                  if (_validateForm()) {
+                    setState(() {
+                      isStartEnc = true;
+                    });
                     final keyList = await KeySQFlite.keys();
                     if (keyList.isEmpty) {
                       showBottomSheet(
