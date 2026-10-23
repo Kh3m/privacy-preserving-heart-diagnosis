@@ -217,15 +217,15 @@ above 55?"). It also rules out KNN, which needs distances between patients.
 So the real question was: do we lose accuracy by using a simpler model? We
 don't. We tested four models the same way. Each model was trained and tested 50
 times on different splits of the data (5-fold cross-validation, repeated 10
-times). The table shows the average, and the ± shows how much the result
+times). The table shows the average, and the +/- shows how much the result
 varied between runs.
 
 | Model | Works encrypted? | Accuracy | Precision | Recall | F1 | ROC AUC |
 |---|---|---|---|---|---|---|
-| Random Forest (paper) | no | 0.822 ± 0.046 | 0.827 ± 0.064 | 0.777 ± 0.084 | 0.798 ± 0.056 | 0.904 ± 0.034 |
-| KNN (k=5) | no | 0.816 ± 0.049 | 0.833 ± 0.068 | 0.753 ± 0.093 | 0.786 ± 0.064 | 0.877 ± 0.043 |
-| Logistic regression, 13 inputs | yes | 0.830 ± 0.040 | 0.860 ± 0.066 | 0.755 ± 0.077 | 0.800 ± 0.049 | 0.897 ± 0.039 |
-| **Logistic regression, 27 inputs (used)** | **yes** | **0.851 ± 0.050** | **0.859 ± 0.059** | **0.809 ± 0.096** | **0.830 ± 0.062** | **0.918 ± 0.035** |
+| Random Forest (paper) | no | 0.822 +/- 0.046 | 0.827 +/- 0.064 | 0.777 +/- 0.084 | 0.798 +/- 0.056 | 0.904 +/- 0.034 |
+| KNN (k=5) | no | 0.816 +/- 0.049 | 0.833 +/- 0.068 | 0.753 +/- 0.093 | 0.786 +/- 0.064 | 0.877 +/- 0.043 |
+| Logistic regression, 13 inputs | yes | 0.830 +/- 0.040 | 0.860 +/- 0.066 | 0.755 +/- 0.077 | 0.800 +/- 0.049 | 0.897 +/- 0.039 |
+| **Logistic regression, 27 inputs (used)** | **yes** | **0.851 +/- 0.050** | **0.859 +/- 0.059** | **0.809 +/- 0.096** | **0.830 +/- 0.062** | **0.918 +/- 0.035** |
 
 Precision and recall are about finding patients **with** heart disease.
 Recall is the share of sick patients the model catches. Precision is the share
